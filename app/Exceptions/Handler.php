@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Exceptions;
-
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
+
     /**
      * A list of exception types with their corresponding custom log levels.
      *
@@ -15,6 +16,11 @@ class Handler extends ExceptionHandler
     protected $levels = [
         //
     ];
+
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        return response()->json(['error' => 'Unauthenticated.'], 401);
+    }
 
     /**
      * A list of the exception types that are not reported.
@@ -47,4 +53,6 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+
 }
