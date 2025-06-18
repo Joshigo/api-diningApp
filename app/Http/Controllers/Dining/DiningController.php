@@ -15,19 +15,50 @@ class DiningController extends Controller
 {
     use ApiResponse;
 
-    /**
-     * Display a listing of dining records for today.
-     *
-     * @param PaginateRequest $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index(PaginateRequest $request)
     {
         try {
             $perPage = $request->input('per_page', 10);
             $hasEaten = $request->input('hasEaten');
-
             $today = Carbon::now()->format('Y-m-d');
+
+            if ($hasEaten === false || !$hasEaten) {
+                // 1. Estudiantes con registro hoy y has_eaten=false
+                $realDinings = Dining::with(['studient.grade'])
+                    ->whereDate('dining_time', $today)
+                    ->where('has_eaten', false)
+                    ->get();
+
+                $studentIdsWithoutRecord = Studient::whereDoesntHave('dining', function ($query) use ($today) {
+                    $query->whereDate('dining_time', $today);
+                })
+                    ->pluck('id');
+
+                $fakeDinings = Studient::with('grade')
+                    ->whereIn('id', $studentIdsWithoutRecord)
+                    ->get()
+                    ->map(function ($student) use ($today) {
+                        return new Dining([
+                            'studient_id' => $student->id,
+                            'has_eaten' => false,
+                            'dining_time' => $today,
+                            'studient' => $student,
+                        ]);
+                    });
+
+                $combined = $realDinings->concat($fakeDinings)
+                    ->sortByDesc('dining_time');
+
+                $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $combined->forPage(\Illuminate\Pagination\Paginator::resolveCurrentPage(), $perPage),
+                    $combined->count(),
+                    $perPage,
+                    \Illuminate\Pagination\Paginator::resolveCurrentPage(),
+                    ['path' => $request->url()]
+                );
+
+                return $this->successResponse($paginated, 'Estudiantes que no han comido hoy obtenidos exitosamente.');
+            }
 
             $query = Dining::with(['studient.grade'])
                 ->whereDate('dining_time', $today);
@@ -36,9 +67,8 @@ class DiningController extends Controller
                 $query->where('has_eaten', $hasEaten);
             }
 
-            $query->orderBy('dining_time', 'desc');
-
-            $dinings = $query->paginate($perPage);
+            $dinings = $query->orderBy('dining_time', 'desc')
+                ->paginate($perPage);
 
             $message = 'Registros de comedor obtenidos exitosamente.';
             if ($hasEaten !== null) {
