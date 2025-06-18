@@ -127,4 +127,14 @@ class StudientController extends Controller
             return $this->errorResponse('Error al procesar el archivo: ' . $e->getMessage(), 500);
         }
     }
+
+    public function delete($id)
+    {
+        $studient = Studient::find($id);
+        if (!$studient) {
+            return $this->errorResponse('studient not found.', 404);
+        }
+        $studient->delete();
+        return $this->successResponse(null, 'studient deleted successfully.');
+    }
 }
