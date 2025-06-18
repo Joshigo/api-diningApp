@@ -22,14 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::resource('studients', StudientController::class);
-
-Route::prefix('dining')->group(function () {
-    Route::get('/', [DiningController::class, 'index']);
-    Route::get('/stats/today', [DiningController::class, 'todayStats']);
-    Route::post('/mark-eaten', [DiningController::class, 'markAsEaten']);
-    Route::post('/mark-not-eaten', [DiningController::class, 'markAsNotEaten']);
-});
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -38,5 +30,15 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::delete('/auth/delete', [AuthController::class, 'delete']);
 
     Route::resource('users', UserController::class);
+
+
+    Route::resource('studients', StudientController::class);
+
+    Route::prefix('dining')->group(function () {
+        Route::get('/', [DiningController::class, 'index']);
+        Route::get('/stats/today', [DiningController::class, 'todayStats']);
+        Route::post('/mark-eaten', [DiningController::class, 'markAsEaten']);
+        Route::post('/mark-not-eaten', [DiningController::class, 'markAsNotEaten']);
+    });
 });
 Route::post('/auth/login', [AuthController::class, 'login']);
