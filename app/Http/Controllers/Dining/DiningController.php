@@ -22,61 +22,30 @@ class DiningController extends Controller
             $hasEaten = $request->input('hasEaten');
             $today = Carbon::now()->format('Y-m-d');
 
-            if ($hasEaten === false || !$hasEaten) {
-                // 1. Estudiantes con registro hoy y has_eaten=false
-                $realDinings = Dining::with(['studient.grade'])
-                    ->whereDate('dining_time', $today)
-                    ->where('has_eaten', false)
-                    ->get();
+            $query = Studient::query();
 
-                $studentIdsWithoutRecord = Studient::whereDoesntHave('dining', function ($query) use ($today) {
-                    $query->whereDate('dining_time', $today);
-                })
-                    ->pluck('id');
-
-                $fakeDinings = Studient::with('grade')
-                    ->whereIn('id', $studentIdsWithoutRecord)
-                    ->get()
-                    ->map(function ($student) use ($today) {
-                        return new Dining([
-                            'studient_id' => $student->id,
-                            'has_eaten' => false,
-                            'dining_time' => $today,
-                            'studient' => $student,
-                        ]);
-                    });
-
-                $combined = $realDinings->concat($fakeDinings)
-                    ->sortByDesc('dining_time');
-
-                $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                    $combined->forPage(\Illuminate\Pagination\Paginator::resolveCurrentPage(), $perPage),
-                    $combined->count(),
-                    $perPage,
-                    \Illuminate\Pagination\Paginator::resolveCurrentPage(),
-                    ['path' => $request->url()]
-                );
-
-                return $this->successResponse($paginated, 'Estudiantes que no han comido hoy obtenidos exitosamente.');
+            if ($hasEaten === '1' || $hasEaten === 1 || $hasEaten === true) {
+                $query->whereHas('dining', function ($q) use ($today) {
+                    $q->whereDate('dining_time', $today)
+                        ->where('has_eaten', true);
+                });
+            } else {
+                $query->where(function ($q) use ($today) {
+                    $q->whereDoesntHave('dining', function ($subQ) use ($today) {
+                        $subQ->whereDate('dining_time', $today);
+                    })
+                        ->orWhereHas('dining', function ($subQ) use ($today) {
+                            $subQ->whereDate('dining_time', $today)
+                                ->where('has_eaten', false);
+                        });
+                });
             }
 
-            $query = Dining::with(['studient.grade'])
-                ->whereDate('dining_time', $today);
+            $studients = $query->with(['grade', 'dining' => function ($q) use ($today) {
+                $q->whereDate('dining_time', $today);
+            }])->paginate($perPage);
 
-            if ($hasEaten !== null) {
-                $query->where('has_eaten', $hasEaten);
-            }
-
-            $dinings = $query->orderBy('dining_time', 'desc')
-                ->paginate($perPage);
-
-            $message = 'Registros de comedor obtenidos exitosamente.';
-            if ($hasEaten !== null) {
-                $statusText = $hasEaten ? 'que han comido' : 'que no han comido';
-                $message = "Estudiantes {$statusText} hoy obtenidos exitosamente.";
-            }
-
-            return $this->successResponse($dinings, $message);
+            return $this->successResponse($studients);
         } catch (\Exception $e) {
             return $this->errorResponse('Error al obtener los registros: ' . $e->getMessage(), 500);
         }
