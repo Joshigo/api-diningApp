@@ -33,7 +33,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 
     Route::resource('studients', StudientController::class);
-
+    Route::post('studients/search', [StudientController::class, 'search']);
     Route::prefix('dining')->group(function () {
         Route::get('/', [DiningController::class, 'index']);
         Route::get('/stats/today', [DiningController::class, 'todayStats']);

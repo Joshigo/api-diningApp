@@ -137,4 +137,21 @@ class StudientController extends Controller
         $studient->delete();
         return $this->successResponse(null, 'studient deleted successfully.');
     }
+
+    public function search(Request $request)
+    {
+        $studients = Studient::where('name', 'like', '%' . $request->search . '%')
+            ->orderBy('id', 'desc')
+            ->take(10)
+            ->get();
+
+        if ($studients->isEmpty()) {
+            $studients = Studient::where('ci', 'like', '%' . $request->search . '%')
+                ->orderBy('id', 'desc')
+                ->take(10)
+                ->get();
+        }
+
+        return $this->successResponse($studients, 'Studients retrieved successfully.');
+    }
 }
