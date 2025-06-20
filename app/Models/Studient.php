@@ -19,7 +19,7 @@ class Studient extends Model
 
     public function dining()
     {
-        return $this->hasMany(Dining::class, 'studient_id');
+        return $this->hasOne(Dining::class, 'studient_id')->latest('dining_time');
     }
 
     public function grade()

@@ -20,7 +20,7 @@ class StudientController extends Controller
     public function index(PaginateRequest $request)
     {
         $perPage = $request->input('per_page', 10);
-        $studients = Studient::latest('created_at')
+        $studients = Studient::with(['grade', 'dining'])->latest('created_at')
             ->paginate($perPage);
 
         return $this->successResponse($studients, 'Studients retrieved successfully.');
