@@ -25,7 +25,7 @@ class UserController extends Controller
         $data = $request->validated();
         $data['role_id'] = 2;
         $user = User::create($data);
-        return $this->successResponse($user, 'Usuario creado exitosamente.', 201);
+        return $this->successResponse($user, 'Usuario creado exitosamente.', 200);
     }
 
     public function show($id)
