@@ -43,8 +43,12 @@ class UserController extends Controller
         if (!$user) {
             return $this->errorResponse('Usuario no encontrado.', 404);
         }
+        $data = $request->validated();
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+        $user->update($data);
 
-        $user->update($request->validated());
         return $this->successResponse($user, 'Usuario actualizado exitosamente.');
     }
 

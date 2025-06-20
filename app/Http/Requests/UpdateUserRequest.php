@@ -13,7 +13,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,7 +25,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'username' => 'sometimes|string|max:255|unique:users,username,' . $this->route('id'),
+            'username' => 'sometimes|string|max:255|unique:users,username,' . $this->route('user'),
             'password' => 'sometimes|string|min:8|confirmed',
         ];
     }
@@ -38,14 +38,5 @@ class UpdateUserRequest extends FormRequest
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
         ];
-    }
-
-    public function prepareForValidation()
-    {
-        if ($this->has('password')) {
-            $this->merge([
-                'password' => bcrypt($this->password)
-            ]);
-        }
     }
 }
