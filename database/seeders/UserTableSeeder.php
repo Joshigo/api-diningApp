@@ -20,14 +20,14 @@ class UserTableSeeder extends Seeder
             'username' => 'admin',
             'role_id' => 1,
             'email_verified_at' => now(),
-            'password' => bcrypt('password'),
+            'password' => 'password',
         ]);
         User::create([
             'name' => 'john doe',
             'username' => 'manager',
             'role_id' => 2,
             'email_verified_at' => now(),
-            'password' => bcrypt('password'),
+            'password' => 'password',
         ]);
     }
 }
