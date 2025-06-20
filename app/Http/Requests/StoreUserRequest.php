@@ -44,13 +44,4 @@ class StoreUserRequest extends FormRequest
             'password_confirmation.min' => 'La confirmación de contraseña debe tener al menos 8 caracteres.',
         ];
     }
-
-    public function prepareForValidation()
-    {
-        if ($this->has('password')) {
-            $this->merge([
-                'password' => bcrypt($this->password)
-            ]);
-        }
-    }
 }

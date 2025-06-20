@@ -23,7 +23,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $data = $request->validated();
-
+        $data['role_id'] = 2;
         $user = User::create($data);
         return $this->successResponse($user, 'Usuario creado exitosamente.', 201);
     }
