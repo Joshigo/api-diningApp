@@ -36,7 +36,7 @@ class StoreUserRequest extends FormRequest
         return [
             'name.required' => 'El campo nombre es obligatorio.',
             'username.required' => 'El campo nombre de usuario es obligatorio.',
-            'username.unique' => 'El nombre de usuario ya está en uso.',
+            'username.unique' => 'El usuario ya está en uso.',
             'password.required' => 'El campo contraseña es obligatorio.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
