@@ -30,7 +30,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::delete('/auth/delete', [AuthController::class, 'delete']);
 
     Route::resource('users', UserController::class);
-
+    Route::put('users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
 
     Route::resource('studients', StudientController::class);
     Route::post('studients/search', [StudientController::class, 'search']);

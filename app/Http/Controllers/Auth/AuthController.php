@@ -18,6 +18,12 @@ class AuthController extends Controller
 
         if (auth()->attempt($credentials)) {
             $user = auth()->user();
+
+            if (!$user->isActive) {
+                auth()->logout();
+                return $this->errorResponse('Tu cuenta está inactiva. Contacta al administrador.', 403);
+            }
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return $this->successResponse([
@@ -38,6 +44,4 @@ class AuthController extends Controller
     {
         return $this->successResponse(auth()->user(), 'Usuario autenticado.');
     }
-
-
 }
