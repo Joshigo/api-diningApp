@@ -16,7 +16,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::Where('id' != 1)->get();
+        $users = User::where('id', '!=', 1)->get();
         return $this->successResponse($users, 'Lista de usuarios obtenida exitosamente.');
     }
 
