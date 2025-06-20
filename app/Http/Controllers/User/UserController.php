@@ -40,7 +40,7 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, $id)
     {
         $user = User::find($id);
-        if (!$user) {
+        if (!$user || $user->id == 1) {
             return $this->errorResponse('Usuario no encontrado.', 404);
         }
         $data = $request->validated();
