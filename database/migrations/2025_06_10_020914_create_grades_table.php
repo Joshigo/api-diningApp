@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('year');
             $table->string('section');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -18,8 +18,9 @@ return new class extends Migration
             $table->foreignId('grade_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('last_name');
-            $table->string('ci')->unique();
+            $table->string('ci');
             $table->enum('gender', ['F', 'M']);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

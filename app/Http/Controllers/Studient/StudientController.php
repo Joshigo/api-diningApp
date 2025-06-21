@@ -37,9 +37,8 @@ class StudientController extends Controller
 
     public function store(Request $request)
     {
-        // Validar que se haya enviado un archivo Excel
         $validator = Validator::make($request->all(), [
-            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // Max 10MB
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -52,23 +51,42 @@ class StudientController extends Controller
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
 
+            // Verificar estructura del documento
+            if (count($rows) < 4) {
+                return $this->errorResponse('El documento proporcionado no tiene la estructura correcta!', 400);
+            }
+
+            $headerRow = $rows[2]; // Fila 3 (índice 2)
+            $expectedHeaders = ['CEDULA', 'APELLIDOS', 'NOMBRES', 'GRADO', 'SEXO'];
+            $actualHeaders = [
+                strtoupper(trim($headerRow[1] ?? '')), // Columna B
+                strtoupper(trim($headerRow[2] ?? '')), // Columna C
+                strtoupper(trim($headerRow[3] ?? '')), // Columna D
+                strtoupper(trim($headerRow[4] ?? '')), // Columna E
+                strtoupper(trim($headerRow[5] ?? '')), // Columna F
+            ];
+
+            if ($actualHeaders !== $expectedHeaders) {
+                return $this->errorResponse('El documento proporcionado no tiene la estructura correcta!', 400);
+            }
+
             $studentsCreated = 0;
             $studentsUpdated = 0;
             $errors = [];
 
             DB::beginTransaction();
 
-            // Empezar desde la fila 4 (índice 3) para saltar los headers
+            Studient::query()->delete();
+            Grade::query()->delete();
+
             for ($i = 3; $i < count($rows); $i++) {
                 $row = $rows[$i];
 
-                // Verificar que la fila no esté vacía
                 if (empty($row[1]) || empty($row[2]) || empty($row[3])) {
                     continue;
                 }
 
                 try {
-                    // Extraer datos de la fila
                     $cedula = $row[1]; // Columna B - CEDULA
                     $apellidos = $row[2]; // Columna C - APELLIDOS
                     $nombres = $row[3]; // Columna D - NOMBRES
@@ -81,7 +99,6 @@ class StudientController extends Controller
                         continue;
                     }
 
-                    // Extraer año y sección del grado (ej: "1F" -> año="1", sección="F")
                     $year = substr($grado, 0, 1); // Primer carácter
                     $section = substr($grado, 1, 1); // Segundo carácter
 
@@ -91,10 +108,8 @@ class StudientController extends Controller
                         'section' => $section,
                     ]);
 
-                    // Normalizar el género
                     $gender = strtoupper($sexo) === 'M' ? 'M' : 'F';
 
-                    // Buscar si el estudiante ya existe por cédula
                     $studient = Studient::where('ci', $cedula)->first();
 
                     $studientData = [
@@ -106,11 +121,9 @@ class StudientController extends Controller
                     ];
 
                     if ($studient) {
-                        // Actualizar estudiante existente
                         $studient->update($studientData);
                         $studentsUpdated++;
                     } else {
-                        // Crear nuevo estudiante
                         Studient::create($studientData);
                         $studentsCreated++;
                     }
