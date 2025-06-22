@@ -159,7 +159,7 @@ class StudientController extends Controller
             ->get();
 
         if ($studients->isEmpty()) {
-            $studients = Studient::where('ci', 'like', '%' . $request->search . '%')
+            $studients = Studient::where('ci', 'like', $request->search . '%')
                 ->orderBy('id', 'desc')
                 ->take(10)
                 ->get();
