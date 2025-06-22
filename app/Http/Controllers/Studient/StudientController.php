@@ -153,7 +153,10 @@ class StudientController extends Controller
 
     public function search(Request $request)
     {
-        $studients = Studient::where('name', 'like', '%' . $request->search . '%')
+        $studients = Studient::where(function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('last_name', 'like', '%' . $request->search . '%');
+        })
             ->with(['grade', 'dining'])
             ->orderBy('id', 'desc')
             ->take(10)
