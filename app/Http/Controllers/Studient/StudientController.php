@@ -154,6 +154,7 @@ class StudientController extends Controller
     public function search(Request $request)
     {
         $studients = Studient::where('name', 'like', '%' . $request->search . '%')
+            ->with(['grade', 'dining'])
             ->orderBy('id', 'desc')
             ->take(10)
             ->get();
