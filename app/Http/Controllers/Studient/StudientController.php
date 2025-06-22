@@ -160,6 +160,7 @@ class StudientController extends Controller
 
         if ($studients->isEmpty()) {
             $studients = Studient::where('ci', 'like', $request->search . '%')
+                ->with(['grade', 'dining'])
                 ->orderBy('id', 'desc')
                 ->take(10)
                 ->get();
