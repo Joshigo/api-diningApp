@@ -143,12 +143,12 @@ class StudientController extends Controller
 
     public function delete($id)
     {
-        $studient = Studient::find($id);
+        $studient = Studient::with(['grade', 'dining'])->find($id);
         if (!$studient) {
             return $this->errorResponse('studient not found.', 404);
         }
         $studient->delete();
-        return $this->successResponse(null, 'studient deleted successfully.');
+        return $this->successResponse($studient, 'studient deleted successfully.');
     }
 
     public function search(Request $request)
