@@ -151,23 +151,22 @@ class StudientController extends Controller
         return $this->successResponse($studient, 'studient deleted successfully.');
     }
 
-    public function search(Request $request)
+    public function search(PaginateRequest $request)
     {
+        $perPage = $request->input('per_page', 10);
         $studients = Studient::where(function ($query) use ($request) {
             $query->where('name', 'like', '%' . $request->search . '%')
                 ->orWhere('last_name', 'like', '%' . $request->search . '%');
         })
             ->with(['grade', 'dining'])
             ->orderBy('id', 'desc')
-            ->take(10)
-            ->get();
+            ->paginate($perPage);
 
         if ($studients->isEmpty()) {
             $studients = Studient::where('ci', 'like', $request->search . '%')
                 ->with(['grade', 'dining'])
                 ->orderBy('id', 'desc')
-                ->take(10)
-                ->get();
+                ->paginate($perPage);
         }
 
         return $this->successResponse($studients, 'Studients retrieved successfully.');

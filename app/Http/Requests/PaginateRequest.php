@@ -22,6 +22,7 @@ class PaginateRequest extends FormRequest
             'page' => 'sometimes|integer|min:1',
             'per_page' => 'sometimes|integer|min:1|max:100',
             'hasEaten' => 'sometimes|boolean',
+            'search' => 'sometimes|string|max:255',
         ];
     }
 
