@@ -22,29 +22,32 @@ class DiningController extends Controller
             $hasEaten = $request->input('hasEaten');
             $today = Carbon::now()->format('Y-m-d');
 
-            $query = Studient::query();
+            $query = Studient::query()->with('grade');
 
-            if ($hasEaten === '1' || $hasEaten === 1 || $hasEaten === true) {
-                $query->whereHas('dining', function ($q) use ($today) {
-                    $q->whereDate('dining_time', $today)
-                        ->where('has_eaten', true);
-                });
-            } else {
-                $query->where(function ($q) use ($today) {
-                    $q->whereDoesntHave('dining', function ($subQ) use ($today) {
-                        $subQ->whereDate('dining_time', $today);
-                    })
-                        ->orWhereHas('dining', function ($subQ) use ($today) {
-                            $subQ->whereDate('dining_time', $today)
-                                ->where('has_eaten', false);
-                        });
-                });
+            if ($hasEaten !== null) {
+                $hasEaten = filter_var($hasEaten, FILTER_VALIDATE_BOOLEAN);
+
+                if ($hasEaten) {
+                    // Estudiantes con registro de comida hoy y has_eaten=true
+                    $query->whereHas('dining', function ($q) use ($today) {
+                        $q->whereDate('dining_time', $today)
+                            ->where('has_eaten', true);
+                    });
+                } else {
+                    // Estudiantes sin registro hoy O con has_eaten=false hoy
+                    $query->where(function ($q) use ($today) {
+                        $q->whereDoesntHave('dining', function ($subQ) use ($today) {
+                            $subQ->whereDate('dining_time', $today);
+                        })
+                            ->orWhereHas('dining', function ($subQ) use ($today) {
+                                $subQ->whereDate('dining_time', $today)
+                                    ->where('has_eaten', false);
+                            });
+                    });
+                }
             }
 
-            $studients = $query->with(['grade', 'dining' => function ($q) use ($today) {
-                $q->whereDate('dining_time', $today);
-            }])->paginate($perPage);
-
+            $studients = $query->paginate($perPage);
             return $this->successResponse($studients);
         } catch (\Exception $e) {
             return $this->errorResponse('Error al obtener los registros: ' . $e->getMessage(), 500);
