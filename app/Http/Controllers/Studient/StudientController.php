@@ -161,8 +161,8 @@ class StudientController extends Controller
 
         // Consulta base con condiciones de búsqueda
         $query = Studient::where(function ($query) use ($searchTerm) {
-            $query->where('name', 'like', '%' . $searchTerm . '%')
-                ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+            $query->where('name', 'like', $searchTerm . '%')
+                ->orWhere('last_name', 'like', $searchTerm . '%')
                 ->orWhere('ci', 'like', $searchTerm . '%');
         })
             ->with(['grade', 'dining'])
