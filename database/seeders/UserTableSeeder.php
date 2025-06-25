@@ -22,12 +22,5 @@ class UserTableSeeder extends Seeder
             'email_verified_at' => now(),
             'password' => 'password',
         ]);
-        User::create([
-            'name' => 'john doe',
-            'username' => 'manager',
-            'role_id' => 2,
-            'email_verified_at' => now(),
-            'password' => 'password',
-        ]);
     }
 }
