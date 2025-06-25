@@ -28,13 +28,11 @@ class DiningController extends Controller
                 $hasEaten = filter_var($hasEaten, FILTER_VALIDATE_BOOLEAN);
 
                 if ($hasEaten) {
-                    // Estudiantes con registro de comida hoy y has_eaten=true
                     $query->whereHas('dining', function ($q) use ($today) {
                         $q->whereDate('dining_time', $today)
                             ->where('has_eaten', true);
                     });
                 } else {
-                    // Estudiantes sin registro hoy O con has_eaten=false hoy
                     $query->where(function ($q) use ($today) {
                         $q->whereDoesntHave('dining', function ($subQ) use ($today) {
                             $subQ->whereDate('dining_time', $today);

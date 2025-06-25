@@ -9,6 +9,7 @@ use App\Models\Grade;
 use App\Models\Studient;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
+use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -154,21 +155,42 @@ class StudientController extends Controller
     public function search(PaginateRequest $request)
     {
         $perPage = $request->input('per_page', 10);
-        $studients = Studient::where(function ($query) use ($request) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('last_name', 'like', '%' . $request->search . '%');
+        $hasEaten = $request->input('hasEaten');
+        $today = Carbon::now()->format('Y-m-d');
+        $searchTerm = $request->search;
+
+        // Consulta base con condiciones de búsqueda
+        $query = Studient::where(function ($query) use ($searchTerm) {
+            $query->where('name', 'like', '%' . $searchTerm . '%')
+                ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+                ->orWhere('ci', 'like', $searchTerm . '%');
         })
             ->with(['grade', 'dining'])
-            ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->orderBy('id', 'desc');
 
-        if ($studients->isEmpty()) {
-            $studients = Studient::where('ci', 'like', $request->search . '%')
-                ->with(['grade', 'dining'])
-                ->orderBy('id', 'desc')
-                ->paginate($perPage);
+        // Filtro adicional por hasEaten
+        if ($hasEaten !== null) {
+            $hasEatenBool = filter_var($hasEaten, FILTER_VALIDATE_BOOLEAN);
+
+            if ($hasEatenBool) {
+                $query->whereHas('dining', function ($q) use ($today) {
+                    $q->whereDate('dining_time', $today)
+                        ->where('has_eaten', true);
+                });
+            } else {
+                $query->where(function ($q) use ($today) {
+                    $q->whereDoesntHave('dining', function ($subQ) use ($today) {
+                        $subQ->whereDate('dining_time', $today);
+                    })->orWhereHas('dining', function ($subQ) use ($today) {
+                        $subQ->whereDate('dining_time', $today)
+                            ->where('has_eaten', false);
+                    });
+                });
+            }
         }
 
-        return $this->successResponse($studients, 'Studients retrieved successfully.');
+        $studients = $query->paginate($perPage);
+
+        return $this->successResponse($studients, 'Estudiantes encontrados con éxito');
     }
 }
